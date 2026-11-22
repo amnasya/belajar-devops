@@ -1,0 +1,29 @@
+# kube-prometheus-stack, versi ringan untuk laptop (kind)
+alertmanager:
+  enabled: false            # alert cukup dilihat di Prometheus/Grafana untuk belajar
+grafana:
+  adminPassword: admin-belajar   # HANYA untuk lab lokal
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      url: http://loki.monitoring.svc:3100
+      access: proxy
+prometheus:
+  prometheusSpec:
+    # Ambil ServiceMonitor/PrometheusRule dari namespace mana pun (bukan hanya yang berlabel release)
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    retention: 2d
+    resources:
+      requests: { cpu: 100m, memory: 400Mi }
+# Komponen control-plane tidak bisa di-scrape di kind
+kubeEtcd: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeControllerManager: { enabled: false }
+kubeProxy: { enabled: false }

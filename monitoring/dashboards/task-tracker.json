@@ -1,0 +1,45 @@
+{
+  "title": "Task Tracker",
+  "uid": "task-tracker",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Pod app yang up",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum(up{namespace=\"task-tracker\", service=\"app\"} == 1) or vector(0)" }],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } }, "overrides": [] }
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Request per detik (per route)",
+      "gridPos": { "h": 8, "w": 9, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (route) (rate(http_requests_total{namespace=\"task-tracker\"}[1m]))", "legendFormat": "{{route}}" }],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Error (status 5xx) per detik",
+      "gridPos": { "h": 8, "w": 9, "x": 15, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum(rate(http_requests_total{namespace=\"task-tracker\", status=~\"5..\"}[1m])) or vector(0)", "legendFormat": "5xx" }],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Memori per pod (MiB)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"task-tracker\", container!=\"\"}) / 1024 / 1024", "legendFormat": "{{pod}}" }],
+      "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] }
+    },
+    {
+      "id": 5, "type": "logs", "title": "Log aplikasi (Loki)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{ "refId": "A", "expr": "{namespace=\"task-tracker\", app=\"app\"}" }],
+      "options": { "showTime": true, "wrapLogMessage": true, "sortOrder": "Descending" }
+    }
+  ]
+}
