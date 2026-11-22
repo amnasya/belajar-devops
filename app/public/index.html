@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daily Task Tracker</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 520px; margin: 2rem auto; padding: 0 1rem; }
+    form { display: flex; gap: .5rem; }
+    input[type=text] { flex: 1; padding: .5rem; }
+    li { display: flex; gap: .5rem; align-items: center; padding: .4rem 0; }
+    li.done span { text-decoration: line-through; color: #888; }
+    li span { flex: 1; }
+    ul { list-style: none; padding: 0; }
+  </style>
+</head>
+<body>
+  <h1>Daily Task Tracker</h1>
+  <form id="form">
+    <input id="title" type="text" maxlength="200" placeholder="Task hari ini..." required>
+    <button>Tambah</button>
+  </form>
+  <ul id="list"></ul>
+  <script>
+    const list = document.getElementById('list');
+    async function load() {
+      const tasks = await (await fetch('/tasks')).json();
+      list.innerHTML = '';
+      for (const t of tasks) {
+        const li = document.createElement('li');
+        li.className = t.done ? 'done' : '';
+        const cb = Object.assign(document.createElement('input'), { type: 'checkbox', checked: t.done });
+        cb.onchange = async () => {
+          await fetch('/tasks/' + t.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ done: cb.checked }) });
+          load();
+        };
+        const span = Object.assign(document.createElement('span'), { textContent: t.title });
+        const del = Object.assign(document.createElement('button'), { textContent: 'Hapus' });
+        del.onclick = async () => { await fetch('/tasks/' + t.id, { method: 'DELETE' }); load(); };
+        li.append(cb, span, del);
+        list.append(li);
+      }
+    }
+    document.getElementById('form').onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('title');
+      await fetch('/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: input.value }) });
+      input.value = '';
+      load();
+    };
+    load();
+  </script>
+</body>
+</html>
