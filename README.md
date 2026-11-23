@@ -222,7 +222,7 @@ $K -n task-tracker set image deployment/app app=ghcr.io/<username>/task-tracker:
 Butuh langkah 4 dan 5 selesai.
 
 1. **Pasang runner** di laptop yang menjalankan cluster: repo GitHub → **Settings → Actions → Runners → New self-hosted runner** → pilih **Windows**, lalu ikuti perintah yang ditampilkan (unduh, `config.cmd`, `run.cmd`) di folder di luar repo, misalnya `C:\actions-runner`.
-2. Di terminal tempat runner berjalan, pastikan `kubectl --context kind-task-tracker get nodes` berhasil dan Git Bash terpasang (workflow memakai `shell: bash`).
+2. Di terminal tempat runner berjalan, pastikan `kubectl --context kind-task-tracker get nodes` berhasil di PowerShell (workflow CD memakai `shell: powershell`).
 3. **Amankan runner** (penting untuk repo publik): **Settings → Actions → General → Fork pull request workflows** → wajibkan approval untuk kontributor luar.
 4. **Coba deploy otomatis:** ubah judul `<h1>` di `app/public/index.html`, lalu
    ```bash

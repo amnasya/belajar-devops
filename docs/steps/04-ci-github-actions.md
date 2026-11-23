@@ -27,4 +27,4 @@ Image muncul di `https://github.com/<user>?tab=packages`. Agar bisa ditarik Kube
 - **`permissions` minimal**: token hanya diberi hak menulis paket pada job yang butuh.
 
 ## Status
-Workflow ditulis dan lolos `actionlint`. **Belum dijalankan di GitHub** — menunggu repo GitHub milik Anda (push adalah aksi keluar yang perlu persetujuan Anda).
+✅ **LIVE 2026-11-23** — repo `amnasya/belajar-devops`: run CI pertama `success` (job `test` + `build-push`), image `ghcr.io/amnasya/task-tracker:latest` bisa ditarik tanpa login (publik). Uji gagal sengaja (PR dengan test rusak) belum dilakukan.

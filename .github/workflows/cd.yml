@@ -1,7 +1,7 @@
 name: CD
 
 # Jalan hanya setelah workflow CI sukses pada push ke main.
-# Runner self-hosted (laptop) dipakai karena cluster kind tidak bisa dijangkau dari internet.
+# Runner self-hosted (laptop Windows) dipakai karena cluster kind tidak bisa dijangkau dari internet.
 on:
   workflow_run:
     workflows: [CI]
@@ -16,20 +16,24 @@ jobs:
     runs-on: self-hosted
     defaults:
       run:
-        shell: bash
+        # PowerShell, bukan bash: di Windows `bash` bisa mengarah ke WSL yang tidak punya kubectl/kubeconfig Windows.
+        shell: powershell
     env:
       KUBE_CONTEXT: kind-task-tracker
       NAMESPACE: task-tracker
+      SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
       - name: Set image ke commit yang lulus CI
         run: |
-          OWNER="${GITHUB_REPOSITORY_OWNER,,}"
-          IMAGE="ghcr.io/${OWNER}/task-tracker:${{ github.event.workflow_run.head_sha }}"
-          kubectl --context "$KUBE_CONTEXT" -n "$NAMESPACE" set image deployment/app app="$IMAGE"
+          $owner = $env:GITHUB_REPOSITORY_OWNER.ToLower()
+          $image = "ghcr.io/$owner/task-tracker:$env:SHA"
+          Write-Host "Deploy $image"
+          kubectl --context $env:KUBE_CONTEXT -n $env:NAMESPACE set image deployment/app "app=$image"
       - name: Tunggu rollout
-        run: kubectl --context "$KUBE_CONTEXT" -n "$NAMESPACE" rollout status deployment/app --timeout=120s
+        run: kubectl --context $env:KUBE_CONTEXT -n $env:NAMESPACE rollout status deployment/app --timeout=120s
       - name: Rollback otomatis bila gagal
         if: failure()
         run: |
-          kubectl --context "$KUBE_CONTEXT" -n "$NAMESPACE" rollout undo deployment/app
-          kubectl --context "$KUBE_CONTEXT" -n "$NAMESPACE" rollout status deployment/app --timeout=120s
+          kubectl --context $env:KUBE_CONTEXT -n $env:NAMESPACE rollout undo deployment/app
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          kubectl --context $env:KUBE_CONTEXT -n $env:NAMESPACE rollout status deployment/app --timeout=120s
